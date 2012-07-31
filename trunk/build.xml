@@ -1,0 +1,118 @@
+<?xml version="1.0"?>
+<!--cloned from jaql build file-->
+
+<project name="dbgen" default="jar">
+	<property file="${user.home}/build.properties" />
+	<property file="build.properties" />
+	<property name="src.dir" value="${basedir}/src" />
+	<property name="lib.dir" value="${basedir}/lib" />
+	<property name="bin.dir" value="${basedir}/bin" />
+	<property name="build.dir" value="${basedir}/build" />
+	<property name="build.src" value="${build.dir}/src" />
+	<property name="hadoop.dir" value="/usr/local/hadoop" />
+	<property name="hadoop.version" value="1.0.3" />
+
+	<property name="tmp.dir" value="${build.dir}/tmp" />
+	<property name="year" value="2012" />
+	<property name="version" value="0.7.1" />
+	
+	<property name="major" value="0" />
+	<property name="minor" value="7" />
+	<property name="point" value="1" />
+	<tstamp>
+	    <format property="release.timestamp" pattern="MMMM dd, yyyy, HH:mm:ss" locale="en,US" />
+	</tstamp>
+	<tstamp>
+		<format property="distro.timestamp" pattern="MM_dd_yyyy" locale="en,US"/>
+  </tstamp>
+	
+  <property name="Name" value="dbgen" />
+  <property name="name" value="dbgen" />
+
+  <property environment="env" />
+  <path id="compile.classpath">
+	<fileset dir="${hadoop.dir}">
+      <include name="**/*.jar" />
+	</fileset>
+	<pathelement location="${build.dir}/classes" />
+  </path>
+
+  <property name="compile.classpath.id" value="compile.classpath" />
+
+  <!-- ================================================================== -->
+  <!-- Build from source                                                  -->
+  <!-- ================================================================== -->
+  <property name="build.classes" value="${build.dir}/classes" />
+  <property name="src.dir" value="${basedir}/" />
+  <property name="build.encoding" value="ISO-8859-1" />
+  <property name="javac.debug" value="on" />
+  <property name="javac.optimize" value="on" />
+  <property name="javac.deprecation" value="off" />
+  <property name="javac.version" value="1.5" />
+  <property name="javadoc.link.java" value="http://java.sun.com/j2se/${javac.version}/docs/api/" />
+  <property name="javac.args" value="" />
+
+  <target name="init">
+    <mkdir dir="${build.dir}" />
+    <mkdir dir="${build.classes}" />
+    <mkdir dir="${build.src}" />
+  </target>
+
+  <!-- copy over the src file -->
+  <target name="init-copy">
+    <copy todir="${build.src}/java">
+      <fileset dir="${src.dir}">
+        <include name="**/*.java" />
+      </fileset>
+    </copy>
+  </target>
+
+  <target name="compile" depends="clean, init, init-copy">
+    <javac 
+		encoding="${build.encoding}" 
+		srcdir="${build.src}/java" 
+		includes="**/*.java" 
+		destdir="${build.classes}" 
+		debug="${javac.debug}" 
+		optimize="${javac.optimize}" 
+		target="${javac.version}" 
+		source="${javac.version}" 
+		includeantruntime="false"
+		deprecation="${javac.deprecation}">
+      <compilerarg line="${javac.args}" />
+	  <classpath refid="${compile.classpath.id}" />
+    </javac>
+  </target>
+
+  <property name="tmp.dir" value="${basedir}/tmp" />
+  <target name="jar" depends="compile">
+    <delete dir="${tmp.dir}" />
+    <mkdir dir="${tmp.dir}" />
+	<copy todir="${tmp.dir}"> 
+		<fileset dir="${build.dir}/classes" />
+	</copy>
+    <!-- make the jar -->
+	<jar jarfile="${build.dir}/dbgen-${major}.${minor}.${point}.jar" basedir="${tmp.dir}">
+      <manifest>
+        <attribute name="Main-Class" value="DBGen" /> 
+      	<section name="versioninfo">
+      	          <attribute name="DBGenVersion" value="${major}.${minor}.${point}" />
+      	          <attribute name="BuildTime" value="${release.timestamp}" />
+      	</section>
+      </manifest>
+    </jar>
+	<copy todir="${bin.dir}/">
+		<fileset dir="${build.dir}/">
+     	   <include name="*.jar" />
+      	</fileset>
+    </copy>
+  </target>
+
+  <!-- ================================================================== -->
+  <!-- Clean.  Delete the build files, and their directories              -->
+  <!-- ================================================================== -->
+  <target name="clean">
+    <delete dir="${build.dir}" />
+  </target>
+
+</project>
