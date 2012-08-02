@@ -2,22 +2,38 @@
 package org.datagen.tpch.schema;
 import org.datagen.tpch.util.Tuple;
 
-public class Lineitem extends Base {
-	static long cursor  = 0;
+public class Lineitem extends Base implements Relation {
 
-	public static Tuple getNext () {
-		Integer orderkey = Orders.orderkey ();
-		Long linenumber = next (); // key
+	long start = 0;
+	Orders o = null;
+
+	public void init () {
+		start = 0;
+		o = new Orders ();
+	}
+
+	public void reset () {
+		start = 0;
+	}
+
+	public void seek (long offset) {
+		start = offset;
+	}
+
+	public void close () {
+	}
+
+	public Tuple getNext () throws Exception {
+		Long linenumber = id (); 
+		Integer orderkey = o.orderkey (); // XXX: pass linenumber?
 		Integer partkey = Part.partkey ();
 		Integer suppkey = suppkey (partkey);
-		Integer quantity = rnd (50);
+		Integer quantity = quantity (partkey);
 		Integer extendedprice = quantity * Part.retailprice (partkey);
-		Double discount = pfmt2 (drnd (0.2) - 1.0);
-		Double tax = pfmt2 (drnd (0.08) - 1.0);
-		//--
+		Double discount = pfmt2 (discount (partkey));
+		Double tax = pfmt2 (tax (partkey));
 		String returnflag = choose ("R", "A", "N");
 		String linestatus = choose ("O", "F");
-		// FIXME
 		long o_date = Orders.orderdate (orderkey);
 		long s_date = shipdate (o_date, orderkey);
 		String shipdate = date (s_date);
@@ -26,20 +42,35 @@ public class Lineitem extends Base {
 		String shipinstruct = D.instruction ();
 		String shipmode = D.mode ();
 		String comment = D.text (27);
-		return new Tuple (orderkey, linenumber, partkey, suppkey, quantity, extendedprice, discount, tax, returnflag, linestatus, shipdate, commitdate, receiptdate, shipinstruct, shipmode, comment);
+
+		return new Tuple (orderkey, linenumber, partkey, suppkey, 
+							quantity, extendedprice, discount, tax, 
+							returnflag, linestatus, shipdate, commitdate, 
+							receiptdate, shipinstruct, shipmode, comment);
+	}
+	
+	// FIXME XXX TODO
+	// -- to ensure data reproducibility, the methods
+	// -- should use 'partkey' as hash or seed value
+
+	private final Integer quantity (final Integer partkey) {
+		return rnd (50); 
 	}
 
-	public static final void start (long start) {
-		cursor = start - 1;
+	public final Integer extendeprice (final Integer partkey) {
+		return quantity (partkey) * Part.retailprice (partkey);
 	}
 
-	public static final long cursor () {
-		return cursor;
+	public final Double discount (final Integer partkey) {
+		return (drnd (0.2) - 1.0);
 	}
 
-	private static long next () {
-		cursor = cursor + 1;
-		return cursor;
+	public final Double tax (final Integer partkey) {
+		return (drnd (0.08) - 1.0);
+	}
+
+	private final long id () {
+		return start++;
 	}
 
 	private static int suppkey (int partkey) {

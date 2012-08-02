@@ -2,16 +2,33 @@
 package org.datagen.tpch.schema;
 import org.datagen.tpch.util.Tuple;
 
-public class Supplier extends Base {
+public class Supplier extends Base implements Relation {
 
-	public static Tuple getNext () {
-		Integer suppkey = suppkey (); // key
+	long start = 0;
+
+	public void init () {  
+		start = 0;
+	}
+
+	public void reset () {
+		start = 0;
+	}
+
+	public void seek (long offset) {
+		start = offset;
+	}
+
+	public void close () {
+	}
+
+	public Tuple getNext () throws Exception {
+		Integer suppkey = suppkey (); 
 		String name = "Supplier#" + String.format ("%09d",suppkey);
-		String address = address (suppkey, (rnd(suppkey, 30)+10) );
+		String address = Misc.address (suppkey, (rnd(suppkey, 30)+10) );
 		Integer nationkey = rnd (suppkey, 25);
-		String phone = phone (suppkey);
+		String phone = Misc.phone (suppkey);
 		Double acctbal = acctbal (suppkey);
-		String comment = D.text (63);  // FIXME: pass suppkey as seed
+		String comment = D.text (63);
 
 		return new Tuple (suppkey, name, address, 
 							nationkey, phone, acctbal, comment);

@@ -1,0 +1,25 @@
+# grammar:
+
+text:<sentence>
+		|<text> <sentence>
+
+sentence:<noun-phrase> <verb-phrase> <terminator>
+			|<noun-phrase> <verb-phrase> <prepositional-phrase> <terminator>
+			|<noun-phrase> <verb-phrase> <noun-phrase> <terminator>
+			|<noun-phrase> <prepositional-phrase> <verb-phrase> 
+			|<noun-phrase> <terminator>
+			|<noun-phrase> <prepositional-phrase> <verb-phrase> 
+			|<prepositional-phrase> <terminator>
+
+noun-phrase:<noun>
+			|<adjective> <noun>
+			|<adjective>, <adjective> <noun>
+			|<adverb> <adjective> <noun>
+
+verb-phrase: <verb>
+			|<auxiliary> <verb>
+			|<verb> <adverb>
+			|<auxiliary> <verb> <adverb>
+
+prepositional-phrase: <preposition> the <noun-phrase>
+

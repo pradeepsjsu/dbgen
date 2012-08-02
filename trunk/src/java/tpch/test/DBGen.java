@@ -1,3 +1,4 @@
+
 package org.datagen.tpch.test;
 
 import java.io.DataInput;
@@ -138,16 +139,20 @@ public class DBGen extends Configured implements Tool {
 			// long min_recs = recs_per_map;
         	long tot_recs = job.getConfiguration().getLong ("dbgen.num.rows", 0);
 
+			int num_splits = 1;
+			long recs_per_split = tot_recs;
+			long num_bytes = recs_per_split * 172l; // estimate for li
+
 			if (tot_recs < recs_per_map) {
 				prt ("# WARN: total_recs <  recs_per_map ");
 				prt ("(" + tot_recs + " < " + recs_per_map + ")");
-				tot_recs = recs_per_map;
+				// tot_recs = recs_per_map;
 			}
-
-            int num_splits = (int) (tot_recs / recs_per_map);
-            long recs_per_split = tot_recs / num_splits;
-
-			long num_bytes = recs_per_split * 160l; // estimate for li
+			else {
+            	num_splits = (int) (tot_recs / recs_per_map);
+            	recs_per_split = tot_recs / num_splits;
+				num_bytes = recs_per_split * 160l; // estimate for li
+			}
 
 			prt ();
             prt ("# InputSplits -> ");
@@ -192,7 +197,15 @@ public class DBGen extends Configured implements Tool {
 		Dictionary dict;
 		boolean firstTime;
 		Tuple tuple;
-		Base rel;
+		Lineitem li;
+		Orders o;
+		Customer c;
+		Part p;
+		Supplier s;
+		Partsupp ps;
+		Nation n;
+		Region r;
+		Relation rel = null;
 
 		protected void setup (Context context) {
 			prt (time() + " -- setup");
@@ -201,11 +214,33 @@ public class DBGen extends Configured implements Tool {
 			out_cnt = 0;
 			//InputSplit split = context.getInputSplit ();
 			dict = new Dictionary ();
+			Configuration conf = context.getConfiguration ();
+			String name = conf.get ("dbgen.table.name");
+			prt ("# table.name: " + name);
+			rel = Table.map (name);
+			if (rel == null) {
+				throw new RuntimeException ("ClassLoadError for " + name);
+			}
+
+			li = new Lineitem ();
+			o = new Orders ();
+			c = new Customer ();
+			p = new Part ();
+			s = new Supplier ();
+			ps = new Partsupp ();
+			n = new Nation ();
+			r = new Region ();
+
 			firstTime = true;
 		}
 
 		private void init (long offset) {
-			Lineitem.start (offset);
+			if (rel instanceof Lineitem) {
+				li.init ();
+				li.reset ();
+				li.seek (offset);
+				li.close ();
+			}
 		}
 
         @Override
@@ -217,7 +252,11 @@ public class DBGen extends Configured implements Tool {
 				firstTime = false;
 			}
 			out_key = new Text (Long.toString (rec_id));
-			tuple = Lineitem.getNext ();
+			try {
+				tuple = rel.getNext ();
+			} catch (Exception e) {
+				throw new RuntimeException ("getNext() raised exception");
+			}
 			out_value = new Text (tuple.toString ());
 			in_cnt++;
             context.write (out_key, out_value);
@@ -264,11 +303,10 @@ public class DBGen extends Configured implements Tool {
 		try {
 			if (args == null) {
 				int sf = 1;
-				for (Relation rel : Relation.values ()) {
-					String tbl = rel.name ();
-					String dest = "tpch/" + tbl;
-					long num_rows = rel.numRows (sf);
-					generate (tbl, num_rows, dest);
+				for (Table tbl: Table.values ()) {
+					String dest = "tpch/" + tbl.name ();
+					long num_rows = tbl.size (sf);
+					generate (tbl.name(), tbl.size(sf), dest);
 				}
 			}
 			else {
@@ -280,6 +318,7 @@ public class DBGen extends Configured implements Tool {
 		return 0;
 	}
 
+	// TODO: use Relation.size (scale_factor) to compute num_recs
     public static void generate (String tbl, long num_recs, String dest) throws Exception {
 
 		assert (tbl != null);
@@ -299,13 +338,17 @@ public class DBGen extends Configured implements Tool {
 
 		Configuration conf = new Configuration ();
 		conf.setLong ("dbgen.num.rows", num_recs);
-		conf.set ("dbgen.relation", tbl);
+		conf.set ("dbgen.table.name", tbl);
+		conf.setBoolean ("mapred.used.genericoptionparser",false);
+		final String JAVA_OPT = "-Duser.timezone='America/Chicago' -Djava.io.tmpdir=/tmp -Djava.net.preferIPv4Stack=true -XX:CompileThreshold=10000 -XX:+DoEscapeAnalysis -XX:+UseNUMA -XX:-EliminateLocks -XX:+UseBiasedLocking -XX:+OptimizeStringConcat -XX:+UseFastAccessorMethods -XX:+UseConcMarkSweepGC -XX:+CMSIncrementalMode -XX:+CMSIncrementalPacing -XX:CMSIncrementalDutyCycleMin=0 -XX:+UseCompressedOops -XX:+AggressiveOpts -XX:-UseStringCache";
+		final String java_map_opt = "-Xmx256m " + JAVA_OPT;
+		conf.set ("mapred.map.child.java.opts", java_map_opt);
 
 		Job job = new Job (conf); 
 		Path out_path = new Path (out_fd);
 		FileOutputFormat.setOutputPath (job, out_path);
 		FileSystem.get (conf).delete (out_path, true); 
-		job.setJobName ("DBGen");
+		job.setJobName (tbl);
 		job.setJarByClass (DBGen.class);
 		job.setMapperClass (DBGenMapper.class);
 		job.setNumReduceTasks (0);

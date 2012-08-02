@@ -1,9 +1,6 @@
 
 package org.datagen.tpch.schema;
 
-import org.datagen.tpch.util.Tuple;
-import org.datagen.tpch.catalog.Dictionary;
-
 import java.util.Random;
 import java.util.HashMap;
 import java.util.Calendar;
@@ -12,29 +9,14 @@ import java.math.MathContext;
 import java.text.DecimalFormat;
 import java.text.SimpleDateFormat;
 
-enum Element {
-	AUTOMOBILE ("Segments"),
-	BUILDING ("Segments"),
-	FURNITURE ("Segments"),
-	MACHINERY ("Segments"),
-	HOUSEHOLD ("Segments"),
-	HIGH ("Priorities");
-	String type;
-
-	Element (String type) {
-		this.type = type;
-	}
-
-	String type () {
-		return type;
-	}
-};
+import org.datagen.tpch.util.Tuple;
+import org.datagen.tpch.catalog.Dictionary;
 
 public class Base {
 
 	protected static final Dictionary D = new Dictionary ();
-    public static final long GOLDEN_RATIO_64 = 0x9e3779b97f4a7c13L;
     public static final int GOLDEN_RATIO_32 = 0x09e3779b9;
+    public static final long GOLDEN_RATIO_64 = 0x9e3779b97f4a7c13L;
 	private static int scale_factor = 1;
     private static final Random rng = new Random (GOLDEN_RATIO_64);
     private static final MathContext mcx = new MathContext (7);
@@ -42,155 +24,18 @@ public class Base {
 	
 	static final long dayms = 86400 * 1000;
 	static final Calendar cal = Calendar.getInstance ();
-	static final String lower = "abcdefghijklmnopqrstuvwxyz";
-	static final String upper = lower.toUpperCase ();
-	static final String alphabets = lower + upper;
-	static final String alphabet = alphabets;
-	static final String numerals = "0123456789";
-	static final String misc = "@$^~`;.?&_"; 
-	static final String math = "<>=!~";
-	static final String arith = "+/-*%";
-	static final String spl = "([{,|:#}])";
-	// excluding math, arith, spl
-	static final String cv = alphabets + numerals;
-	static final String ck = alphabets + numerals + misc;
-	static final String word[] = {
-					"furiously", "haggle", "lavender", "slurpy", 
-					"sleepy", "unusual", "carefully", "pinto", 
-					"beans", "instructions", "requests", "alongside", 
-					"of", "deposits", "dependencies", "express", 
-					"foxes", "wake", "pending", "fluffily", "final", 
-					"slyly", "blithely", "cajole", "silent", "the", 
-					"to", "against", "according", "ironic", "gifts", 
-					"even", "packages", "thinly", "special","nag", 
-					"bold", "integrate", "at", "above", "waters", 
-					"dolphins", "must", "theodolites", "sheaves", 
-					"bus", "asymptotes", "condition", "generalization", 
-					"parse", "string", "entry", "user", "deployed", 
-					"syslog", "handler", "automated", "fields", "error", 
-					"too", "many", "malformed", "asynchronous", "raise", 
-					"follows", "can't", "don't", "stop", "difficult", 
-					"program", "such", "thread", "continuable", "possible", 
-					"jump", "violet", "red", "blue", "orange", "green", 
-					"restart", "policy", "appropriate", "chunk", "key", 
-					"foo", "bar", "door", "floor", "in", "not", "yes", 
-					"no", "I", "can", "do", "don't", "a", "airplane", 
-					"train", "ship", "bike", "car"
-					};
-
 	public static final Integer K = 1000;
 	public static final Integer M = 1000 * 1000;
 	public static final Integer B = 1000 * 1000 * 1000; 
 	public static final Long T = 1000l * 1000l * 1000l * 1000l;
 
-	// Integer.MAX_VALUE is 2^32-1 := 2,147,483,647 (2.1 billion)
-	// Long.MAX_VALUE is 2^63-1 := 9,223-372,036-854,775-807 (9.2 trillion?)
-
-	static int keylen = 17;
-	static int wordlen = 3;
-
-	public static final String nextKey () {
-		int len;
-		len = keylen + rng.nextInt (3);
-		int max = ck.length ();
-		char res[] = new char[len+3];
-		res[0] = ' ';
-		res[1] = ' ';
-		res[2] = ' ';
-		for (int i = 3; i < len; i++) {
-			int indx = rng.nextInt (max);
-			res[i] = ck.charAt(indx);
-		}
-		return new String (res);
-	}
-
-	public static final String word () {
-		int indx = rnd (word.length) - 1;
-		return word[indx] + " ";
-	}
-
-	private static final String digit () {
-		int pos = rnd (numerals.length() - 1);
-		return numerals.substring (pos,pos+1);
-	}
-
-	private static final String ndigit () {
-		String ch = digit ();
-		while (ch.equals ("0")) {
-			ch = digit ();
-		}
-		return ch;
-	}
-
-	private static final char alphabet () {
-		return alphabet.charAt ( rnd (alphabet.length()-1) );
-	}
-
-	private static final String digit (int len) {
-		String res = "";
-		for (int i = 0; i < len; i++) {
-			res += digit ();
-		}
-		return res;
-	}
-
-	private static final String ndigit (int len) {
-		String res = "";
-		for (int i = 0; i < len; i++) {
-			res += ndigit ();
-		}
-		return res;
-	}
-
-	public static final String phone () {
-		String res = "";
-		res += ndigit (2);
-		res += "-";
-		res += ndigit (3);
-		res += "-";
-		res += ndigit (3);
-		res += "-";
-		res += digit (4);
-		return res;
-	}
-
-	public static final String phone (Integer key) {
-		return phone ();
-	}
-
-	public static final String address (int maxlen) {
-		String res = "";
-		for (int i = 0; i < maxlen; i++) {
-			res += alphabet ();
-		}
-		return res;
-	}
-
-	public static final String address (Integer seed, int maxlen) {
-		return address (maxlen);
-	}
-
-
-	public static final String myphrase (int maxlen) {
-		StringBuilder res = new StringBuilder (maxlen);
-		while (res.length () < maxlen) {
-			res.append (word());
-		}
-		return res.toString ();
-	}
-
-	public static final String nextWord () {
-		int len = wordlen + rng.nextInt (7);
-		String res = "";
-		for (int i = 1; i < len; i++) {
-			res += word();
-		}
-		return res;
-	}
-
 	// rand int from [1, lim]
 	public static final int rnd (int lim) {
-		return nextInt (lim) + 1;
+		return (nextInt (lim) + 1);
+	}
+
+	public static final int rndL (long lim) {
+		return (int) (nextLong (lim) + 1); // FIXME
 	}
 
 	public static final int rnd (Integer seed, int lim) {
@@ -205,7 +50,6 @@ public class Base {
 	public static final double drnd (Integer seed, double lim) {
 		return nextDouble (lim) + 1.0;
 	}
-
 
 	public static final String choose (final Object... arg) {
 		Object res = null;
@@ -248,6 +92,10 @@ public class Base {
 	// rand int from [0, lim-1]
 	public static final Integer nextInt (int lim) {
 		return (int) (rng.nextDouble () * lim);
+	}
+
+	public static final Long nextLong (long lim) {
+		return rng.nextLong ();
 	}
 
 	public static final Double nextDouble (double lim) {
@@ -410,6 +258,15 @@ public class Base {
 		return "[" + fmt.format (Calendar.getInstance().getTime()) + "] ";
 	}
 
+	public static final boolean isnull (final Object ... list) {
+		for (Object obj: list) {
+			if (obj == null) {
+				return true;
+			}
+		}
+		return false;
+	}
+
 	// print utils..
 
 	public static final void prt (final Object obj) {
@@ -475,14 +332,5 @@ public class Base {
 		prt ("  T: " + T + " aka " + format (T) + " aka " + hfmt (T) );
 	}
 
-	public static Tuple getNext () {
-		return null;
-	}
-
-	public static void main (String[] args) {
-		for (Element elem : Element.values ()) {
-			prt (" elem: " + elem + " type: " + elem.type ());
-		}
-	}
 };
 
