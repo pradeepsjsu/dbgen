@@ -1,23 +1,45 @@
 
 package org.datagen.tpch.schema;
-import org.datagen.tpch.util.Tuple;
+import org.datagen.tpch.util.*;
 
-public class Customer extends Base {
-	public static Tuple getNext () {
-		Integer custkey = custkey();
-		String name = "Customer#";
-		name += String.format ("%09d", custkey);
-		String address = address ( (rnd(30)+10) );
-		Integer nationkey = rnd(25);
-		String phone = phone ();
-		Double acctbal = pfmt2 (drnd (10999.99) - 999.99); // [ -999.99 .. 9,999.99 ]
-		String mktsegment = D.segment ();
-		String comment = D.text (73); // FIXME
-		return new Tuple (custkey, name, address, nationkey, phone, acctbal, mktsegment, comment);
+public class Customer extends Base implements Relation {
+
+	long start = 0;
+	long limit = 0;
+
+	public void init () {  
+		start = 0;
+		limit = Table.CUSTOMER.size (1.0);
 	}
 
-	public static Integer custkey () {
-		return rnd (sf() * 150000);
+	public void reset () {
+		start = 0;
+	}
+
+	public void seek (long offset) {
+		start = offset;
+	}
+
+	public void close () {
+	}
+
+	public Tuple getNext () throws Exception {
+		Integer custkey = custkey (start);
+		String name = "Customer#";
+		name += String.format ("%09d", custkey);
+		String address = Misc.address ( (rnd(30)+10) );
+		Integer nationkey = rnd(25);
+		String phone = Misc.phone ();
+		Double acctbal = pfmt2 (drnd (10999.99) - 999.99);
+		String mktsegment = D.segment ();
+		String comment = D.text (73);
+		return new Tuple (custkey, name, address, nationkey, 
+							phone, acctbal, mktsegment, comment);
+	}
+
+	public Integer custkey (long offset) {
+		// FIXME: use offset and wrap around
+		return (int) rndL (limit); 
 	}
 };
 

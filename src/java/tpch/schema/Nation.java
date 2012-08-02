@@ -1,12 +1,12 @@
 
 package org.datagen.tpch.schema;
-import org.datagen.tpch.util.Tuple;
+import org.datagen.tpch.util.*;
 import org.datagen.tpch.catalog.Dictionary;
 
 import java.util.List;
 import java.util.ArrayList;
 
-public class Nation extends Base {
+public class Nation extends Base implements Relation {
 	public enum NTuple {
 		ALGERIA (0, 0),
 		ARGENTINA (1, 1),
@@ -62,10 +62,34 @@ public class Nation extends Base {
 		}
 	};
 
-	public static Tuple getNext () {
-		int i = Base.rnd (25) - 1;
+	final long limit = Table.NATION.size (1);
+	long start = 0;
+
+	public Nation () {
+		init ();
+	}
+
+	public void init () {
+		start = 0;
+	}
+
+	public void reset () {
+		start = 0;
+	}
+
+	public void seek (long offset) {
+		start = offset;
+	}
+
+	public void close () {
+	}
+
+	public Tuple getNext () throws Exception {
+		int i = (int) (start % limit);
 		NTuple n = NTuple.get (i);
-		return new Tuple (n.nationkey (), n.name (), n.regionkey (), Dictionary.text (95));
+		start = start + 1;
+		return new Tuple (n.nationkey (), n.name (), 
+							n.regionkey (), Dictionary.text (95));
 	}
 };
 

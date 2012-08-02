@@ -2,47 +2,46 @@
 package org.datagen.tpch.schema;
 import org.datagen.tpch.util.Tuple;
 
-public class Part extends Base {
+public class Part extends Base implements Relation {
 
 	public static Integer retailprice (Integer partkey) {
 		return (90000 + ((partkey/10) % 20001) + 100 * (partkey/1000))/100;
 	}
 
-	public static Tuple getNext () {
-		// -- schema
-		Integer partkey;	
-		String name;
-		String mfgr;
-		String brand;
-		String type;
-		Integer size;
-		String container;
-		Integer retailprice;
-		String comment;
+	long start = 0;
 
-		partkey = partkey ();
-		name = D.name ();
+	public void init () {
+		start = 0;
+	}
+
+	public void reset () {
+		start = 0;
+	}
+
+	public void seek (long offset) {
+		start = offset;
+	}
+
+	public void close () {
+	}
+
+	public Tuple getNext () throws Exception {
+
 		int mid = rnd (5);
-		mfgr = "Manufacturer#" + mid;
 		int bid = rnd (5);
-		brand = "Brand#" + mid + bid;
-		type = D.type ();
-		size = rnd (50);
-		container = D.container ();
-		retailprice = retailprice (partkey);
-		comment = D.text (14);
 
-		// construct output tuple
-		Tuple t = new Tuple ();
-		t.store (partkey);
-		t.store (name);
-		t.store (mfgr);
-		t.store (brand);
-		t.store (type);
-		t.store (size);
-		t.store (container);
-		t.store (retailprice);
-		t.store (comment);
+		Integer partkey = partkey ();
+		String name = D.name ();
+		String mfgr = "Manufacturer#" + mid;
+		String brand = "Brand#" + mid + bid;
+		String type = D.type ();
+		Integer size = rnd (50);
+		String container = D.container ();
+		Integer retailprice = retailprice (partkey);
+		String comment = D.text (14);
+
+		Tuple t = new Tuple (partkey, name, mfgr, brand, 
+								size, container, retailprice, comment);
 		return t;
 	}
 

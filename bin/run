@@ -1,0 +1,65 @@
+#!/bin/bash
+
+java_home="$JAVA_HOME";
+dbgen_home="$PWD";
+dbgen_conf="$dbgen_home/conf";
+hadoop_home="$HADOOP_HOME";
+hadoop_conf="$HADOOP_CONF_DIR";
+
+if [ "$java_home" = '' ] ; then
+	echo "# env: JAVA_HOME not set";
+fi
+if [ ! -e "$hadoop_home" ] ; then
+	echo "# hadoop not installed ('$hadoop_home')";
+fi
+if [ ! -e "$hadoop_conf" ] ; then
+	echo "# hadoop conf not found ('$hadoop_conf')";
+	exit;
+fi
+
+HADOOP_LOGFILE='hadoop.log';
+HADOOP_OPTS="$HADOOP_OPTS -Dhadoop.log.file=$HADOOP_LOGFILE"
+HADOOP_OPTS="$HADOOP_OPTS -Dhadoop.root.logger=${HADOOP_ROOT_LOGGER:-INFO,DRFA}"
+JAVA_LIBRARY_PATH=$HADOOP_HOME/lib/native/Linux-amd64-64/
+
+CLASSPATH=${dbgen_conf}:${hadoop_conf};
+CLASSPATH=${CLASSPATH}:$java_home/lib/tools.jar
+
+for f in $dbgen_home/bin/*.jar; do
+	CLASSPATH=${CLASSPATH}:$f;
+done
+for f in $dbgen_home/lib/*.jar; do
+	CLASSPATH=${CLASSPATH}:$f;
+done
+for f in $hadoop_home/hadoop-*.jar; do
+	CLASSPATH=${CLASSPATH}:$f;
+done
+for f in $hadoop_home/lib/commons-*.jar; do
+	CLASSPATH=${CLASSPATH}:$f;
+done
+for f in $hadoop_home/lib/jackson-*.jar; do
+	CLASSPATH=${CLASSPATH}:$f;
+done
+
+tbl="$1";
+num_recs="$2";
+out_dir="$3";
+
+# -- defaults
+if [ "$tbl" = '' ] ; then
+	tbl="customer";
+fi
+if [ "$num_recs" = '' ] ; then
+	num_recs="100000"; 
+fi
+if [ "$out_dir" = '' ] ; then
+	out_dir="tpch";  # FIXME
+fi
+arg1="$tbl";
+arg2="$num_recs";
+arg3="$out_dir";
+args="$arg1 $arg2 $arg3";
+
+logf="stdout.$tbl"; # unused
+
+time exec java -Xmx400M -Djava.library.path=$JAVA_LIBRARY_PATH -classpath "$CLASSPATH" org.datagen.tpch.test.DBGen $args

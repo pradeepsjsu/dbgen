@@ -2,9 +2,26 @@
 package org.datagen.tpch.schema;
 import org.datagen.tpch.util.Tuple;
 
-public class Partsupp extends Base {
+public class Partsupp extends Base implements Relation {
 	
-	public static Tuple getNext () {
+	long start = 0;
+
+	public void init () {
+		start = 0;
+	}
+
+	public void reset () {
+		start = 0;
+	}
+
+	public void seek (long offset) {
+		start = offset;
+	}
+
+	public void close () {
+	}
+
+	public Tuple getNext () throws Exception {
 		Integer partkey = rnd (sf() * 2000000);
 		Integer suppkey = rnd (sf() * 10000);
 		Integer availqty = rnd (9999);

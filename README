@@ -1,0 +1,28 @@
+README
+=======
+
+Prereq:
+	echo $HADOOP_HOME
+	echo $JAVA_HOME
+	echo $HADOOP_CONF_DIR
+	whereis ant
+	
+Build:
+	ant
+
+Usage:
+	bin/gendata.sh <scale-factor>
+
+Example:
+	bin/gendata.sh 100   # -- produces ~150GB data
+
+Note:
+    scale-factor=1
+      s:     10,000  recs
+      c:    150,000  recs
+      p:    200,000  recs
+     ps:    800,000  recs
+      o:  1,500,000  recs
+     li:  6,000,000  recs
+
+---------------------------------------------------

@@ -2,49 +2,66 @@
 package org.datagen.tpch.schema;
 import org.datagen.tpch.util.Tuple;
 
-public class Orders extends Base {
+public class Orders extends Base implements Relation {
 
-	public static Tuple getNext () {
-		Integer 	orderkey;
-		Integer 	custkey;
-		String 		orderstatus; // char(1)
-		Double 		totalprice;
-		String 		orderdate;
-		String 		orderpriority; // char(15)
-		String 		clerk; // char(15)
-		Integer 	shippriority; 
-		String 		comment; // char(79);
+	long start = 0;
+	Lineitem li = null;
 
-		orderkey = orderkey (); //[1..(SF * 150,000 * 4)]
-		custkey = rnd (sf() * 150000); // [1..(SF * 150,000)]
-		// orderstatus -> l_linestatus {'F','O','P'}
-		orderstatus = choose ("F","O","P");
-		// sum (l_extprc * (1 + l_tax) * (1 - l_discnt)
-		totalprice = nextDouble (1793); 
+	public Orders () {
+		init ();
+	}
 
-		// UNIFORM (start_date, (end_date - 151))
-		orderdate = date (orderdate (orderkey));
-		orderpriority = D.priority ();
+	public void init () {
+		start = 0;
+		li = new Lineitem ();
+	}
 
-		// "Clerk000,000,001"; // [000,000,001 .. (SF * 1000)]
-		clerk = "Clerk#";
+	public void reset () {
+		start = 0;
+	}
+
+	public void seek (long offset) {
+		start = offset;
+	}
+
+	public void close () {
+	}
+
+	public Tuple getNext () throws Exception {
+
+		Integer orderkey = orderkey (); 
+		Integer custkey = rnd (sf() * 150000); 
+		String orderstatus = choose ("F","O","P");
+		Double totalprice = totalprice (orderkey);
+
+		String orderdate = date (orderdate (orderkey));
+		String orderpriority = D.priority ();
+		String clerk = clerk ();
+
+		Integer shippriority = 0;
+		String comment = D.text (49);
+
+		return new Tuple (orderkey, custkey, orderstatus, 
+							totalprice, orderdate, orderpriority, 
+							clerk, shippriority, comment);
+	}
+
+	public Double totalprice (Integer orderkey) {
+		Double o_totprc = null;
+		Integer l_extprc = li.extendeprice (orderkey);
+		Double l_tax = li.tax (orderkey);
+		Double l_disc = li.discount (orderkey);
+		if (! isnull (l_extprc, l_tax, l_disc)) {
+			o_totprc = (l_extprc * (1 + l_tax) * (1 - l_disc));
+		}
+		return o_totprc;
+	}
+
+	public String clerk () {
+		String res = "Clerk#";
 		int clerk_id = rnd (sf() * 1000);
-		clerk += String.format ("%09d", clerk_id);
-
-		shippriority = 0;
-		comment = D.text (49);
-
-		Tuple inst = new Tuple ();
-		inst.store (orderkey);
-		inst.store (custkey);
-		inst.store (orderstatus);
-		inst.store (totalprice);
-		inst.store (orderdate);
-		inst.store (orderpriority);
-		inst.store (clerk);
-		inst.store (shippriority);
-		inst.store (comment);
-		return inst;
+		res += String.format ("%09d", clerk_id);
+		return res;
 	}
 
 	public static Integer orderkey () {
@@ -52,7 +69,6 @@ public class Orders extends Base {
 	}
 
 	public static final long orderdate (int seed) {
-		// uniform (STARTDATE, (ENDDATE - 151))
 		int yy = 1991 + rnd (7);
 		int mm = rnd (12);
 		int dd = rnd (30);
@@ -61,4 +77,3 @@ public class Orders extends Base {
 		return (millis - (151 * dayms));
 	}
 };
-
