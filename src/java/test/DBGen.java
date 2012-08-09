@@ -1,5 +1,5 @@
 
-package org.datagen.tpch.test;
+package org.datagen.test;
 
 import java.io.DataInput;
 import java.io.DataOutput;
@@ -8,9 +8,10 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
 
-import org.datagen.tpch.schema.*;
-import org.datagen.tpch.util.*;
-import org.datagen.tpch.catalog.Dictionary;
+import org.datagen.db.core.*;
+import org.datagen.db.tpch.schema.*;
+import org.datagen.db.gmm.schema.*;
+import org.datagen.db.tpch.catalog.Dictionary;
 
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.conf.Configured;
@@ -197,50 +198,31 @@ public class DBGen extends Configured implements Tool {
 		Dictionary dict;
 		boolean firstTime;
 		Tuple tuple;
-		Lineitem li;
-		Orders o;
-		Customer c;
-		Part p;
-		Supplier s;
-		Partsupp ps;
-		Nation n;
-		Region r;
 		Relation rel = null;
+		Properties properties;
 
 		protected void setup (Context context) {
 			prt (time() + " -- setup");
 			prt ();
 			in_cnt = 0;
 			out_cnt = 0;
-			//InputSplit split = context.getInputSplit ();
 			dict = new Dictionary ();
 			Configuration conf = context.getConfiguration ();
+			properties = new Properties (conf);
+			String db = conf.get ("dbgen.db.name");
 			String name = conf.get ("dbgen.table.name");
+			prt ("# db.name: " + db);
 			prt ("# table.name: " + name);
 			rel = Table.map (name);
 			if (rel == null) {
 				throw new RuntimeException ("ClassLoadError for " + name);
 			}
-
-			li = new Lineitem ();
-			o = new Orders ();
-			c = new Customer ();
-			p = new Part ();
-			s = new Supplier ();
-			ps = new Partsupp ();
-			n = new Nation ();
-			r = new Region ();
-
 			firstTime = true;
 		}
 
 		private void init (long offset) {
-			if (rel instanceof Lineitem) {
-				li.init ();
-				li.reset ();
-				li.seek (offset);
-				li.close ();
-			}
+			rel.init (properties);
+			rel.seek (offset);
 		}
 
         @Override
@@ -268,6 +250,7 @@ public class DBGen extends Configured implements Tool {
         }
 
 		protected void cleanup (Context context) {
+			rel.close ();
 			prt ();
 			prt (time() + " -- cleanup");
 			prt ("  > in_recs: " + in_cnt);
@@ -299,37 +282,16 @@ public class DBGen extends Configured implements Tool {
 		Base.prt ();
 	}
 
-	public int run (String[] args) throws IOException {
-		try {
-			if (args == null) {
-				int sf = 1;
-				for (Table tbl: Table.values ()) {
-					String dest = "tpch/" + tbl.name ();
-					long num_rows = tbl.size (sf);
-					generate (tbl.name(), tbl.size(sf), dest);
-				}
-			}
-			else {
-				DBGen.generate (args[0], Long.parseLong (args[1]), args[2]);
-			}
-		} catch (Exception e) {
-			throw new RuntimeException (e);
-		}
-		return 0;
-	}
-
-	// TODO: use Relation.size (scale_factor) to compute num_recs
-    public static void generate (String tbl, long num_recs, String dest) throws Exception {
-
-		assert (tbl != null);
+    public static void generate (String db, String tbl, long num_recs, String dest) throws Exception {
+		assert (db != null && tbl != null && dest != null);
 		assert (num_recs > 0);
-		assert (dest != null);
 
 		long num_bytes = num_recs * 160l; // estimate for li
 		String out_fd = dest + "/" + tbl;
 
 		prt ();
 		prt ("# GENERATE: ");
+		prt ("   -- db: " + Base.quote (db));
 		prt ("   -- table: " + Base.quote (tbl));
 		prt ("   -- records: " + Base.hfmt (num_recs));
 		prt ("   -- out_size: " + Base.hfmt2 (num_bytes));
@@ -337,9 +299,10 @@ public class DBGen extends Configured implements Tool {
 		prt ();
 
 		Configuration conf = new Configuration ();
-		conf.setLong ("dbgen.num.rows", num_recs);
+		conf.set ("dbgen.db.name", db);
 		conf.set ("dbgen.table.name", tbl);
-		conf.setBoolean ("mapred.used.genericoptionparser",false);
+		conf.setLong ("dbgen.num.rows", num_recs);
+		conf.setBoolean ("mapred.used.genericoptionparser", false);
 		final String JAVA_OPT = "-Duser.timezone='America/Chicago' -Djava.io.tmpdir=/tmp -Djava.net.preferIPv4Stack=true -XX:CompileThreshold=10000 -XX:+DoEscapeAnalysis -XX:+UseNUMA -XX:-EliminateLocks -XX:+UseBiasedLocking -XX:+OptimizeStringConcat -XX:+UseFastAccessorMethods -XX:+UseConcMarkSweepGC -XX:+CMSIncrementalMode -XX:+CMSIncrementalPacing -XX:CMSIncrementalDutyCycleMin=0 -XX:+UseCompressedOops -XX:+AggressiveOpts -XX:-UseStringCache";
 		final String java_map_opt = "-Xmx256m " + JAVA_OPT;
 		conf.set ("mapred.map.child.java.opts", java_map_opt);
@@ -359,8 +322,31 @@ public class DBGen extends Configured implements Tool {
 		job.waitForCompletion (true);
 	}
 
+	public int run (String[] args) throws IOException {
+		try {
+			if (args == null) {
+				int sf = 1;
+				for (Table tbl: Table.values ()) {
+					long num_rows = tbl.size (sf);
+					String dest = tbl.db() + "-" + sf;
+					generate (tbl.name(), tbl.db(), tbl.size(sf), dest);
+				}
+			}
+			else {
+				String db = args[0];
+				String tbl = args[1];
+				long num_recs = Long.parseLong (args[2]);
+				String out_path = args[3];
+				DBGen.generate (db, tbl, num_recs, out_path);
+			}
+		} catch (Exception e) {
+			throw new RuntimeException (e);
+		}
+		return 0;
+	}
+
 	public static void main (String[] args) throws Exception {
-		int res = ToolRunner.run (new DBGen(), args); // calls DBGen.run ()
+		int res = ToolRunner.run (new DBGen(), args);
 		System.exit (res);
 	}
 };

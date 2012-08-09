@@ -1,13 +1,19 @@
 
-package org.datagen.tpch.schema;
-import org.datagen.tpch.util.Tuple;
+package org.datagen.db.tpch.schema;
+import org.datagen.db.core.*;
+import org.datagen.db.tpch.catalog.Dictionary;
 
 public class Supplier extends Base implements Relation {
 
 	long start = 0;
+	Dictionary D;
 
-	public void init () {  
+	public Supplier () {
+	}
+
+	public void init (Properties map) {  
 		start = 0;
+		D = new Dictionary ();
 	}
 
 	public void reset () {

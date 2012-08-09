@@ -1,8 +1,11 @@
 
-package org.datagen.tpch.schema;
-import org.datagen.tpch.util.Tuple;
+package org.datagen.db.tpch.schema;
+import org.datagen.db.core.*;
+import org.datagen.db.tpch.catalog.Dictionary;
 
 public class Part extends Base implements Relation {
+
+	Dictionary D;
 
 	public static Integer retailprice (Integer partkey) {
 		return (90000 + ((partkey/10) % 20001) + 100 * (partkey/1000))/100;
@@ -10,8 +13,12 @@ public class Part extends Base implements Relation {
 
 	long start = 0;
 
-	public void init () {
+	public Part () {
+	}
+
+	public void init (Properties map) {
 		start = 0;
+		D = new Dictionary ();
 	}
 
 	public void reset () {

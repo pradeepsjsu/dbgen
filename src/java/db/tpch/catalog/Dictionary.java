@@ -1,5 +1,5 @@
 
-package org.datagen.tpch.catalog;
+package org.datagen.db.tpch.catalog;
 
 import java.util.Random;
 import java.util.List;

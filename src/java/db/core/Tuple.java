@@ -1,5 +1,5 @@
 
-package org.datagen.tpch.util;
+package org.datagen.db.core;
 
 import java.util.ArrayList;
 

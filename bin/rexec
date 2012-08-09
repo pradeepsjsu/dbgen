@@ -41,25 +41,32 @@ for f in $hadoop_home/lib/jackson-*.jar; do
 	CLASSPATH=${CLASSPATH}:$f;
 done
 
-tbl="$1";
-num_recs="$2";
-out_dir="$3";
+db="$1";
+tbl="$2";
+num_recs="$3";
+out_dir="$4";
 
 # -- defaults
-if [ "$tbl" = '' ] ; then
-	tbl="customer";
+if [ "$db" = '' ] ; then
+	db="tpch";
+	tbl="orders";
 fi
+let M="1000000";
+let hundred="100*M";
+let B="1000*M";
+let half_B="B/2";
 if [ "$num_recs" = '' ] ; then
-	num_recs="100000"; 
+	num_recs="$half_B";
 fi
 if [ "$out_dir" = '' ] ; then
-	out_dir="tpch";  # FIXME
+	out_dir="tpch"
 fi
-arg1="$tbl";
-arg2="$num_recs";
-arg3="$out_dir";
-args="$arg1 $arg2 $arg3";
+arg1="$db";
+arg2="$tbl";
+arg3="$num_recs";
+arg4="$out_dir";
+args="$arg1 $arg2 $arg3 $arg4";
 
 logf="stdout.$tbl"; # unused
 
-time exec java -Xmx400M -Djava.library.path=$JAVA_LIBRARY_PATH -classpath "$CLASSPATH" org.datagen.tpch.test.DBGen $args
+time exec java -Xmx1024M -Djava.library.path=$JAVA_LIBRARY_PATH -classpath "$CLASSPATH" org.datagen.db.test.DBGen $args

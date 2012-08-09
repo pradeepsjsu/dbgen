@@ -1,5 +1,5 @@
 
-package org.datagen.tpch.schema;
+package org.datagen.db.core;
 
 import java.util.Random;
 import java.util.HashMap;
@@ -9,12 +9,8 @@ import java.math.MathContext;
 import java.text.DecimalFormat;
 import java.text.SimpleDateFormat;
 
-import org.datagen.tpch.util.Tuple;
-import org.datagen.tpch.catalog.Dictionary;
-
 public class Base {
 
-	protected static final Dictionary D = new Dictionary ();
     public static final int GOLDEN_RATIO_32 = 0x09e3779b9;
     public static final long GOLDEN_RATIO_64 = 0x9e3779b97f4a7c13L;
 	private static int scale_factor = 1;
@@ -22,8 +18,8 @@ public class Base {
     private static final MathContext mcx = new MathContext (7);
     private static final DecimalFormat df = new DecimalFormat ();
 	
-	static final long dayms = 86400 * 1000;
-	static final Calendar cal = Calendar.getInstance ();
+	public static final long dayms = 86400 * 1000;
+	public static final Calendar cal = Calendar.getInstance ();
 	public static final Integer K = 1000;
 	public static final Integer M = 1000 * 1000;
 	public static final Integer B = 1000 * 1000 * 1000; 
@@ -333,4 +329,3 @@ public class Base {
 	}
 
 };
-

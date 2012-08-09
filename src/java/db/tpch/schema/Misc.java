@@ -1,6 +1,7 @@
 
-package org.datagen.tpch.schema;
-import org.datagen.tpch.catalog.Dictionary;
+package org.datagen.db.tpch.schema;
+import org.datagen.db.core.Tuple;
+import org.datagen.db.tpch.catalog.Dictionary;
 
 public class Misc {
 
