@@ -1,10 +1,9 @@
 
-package org.datagen.tpch.schema;
-import org.datagen.tpch.util.Tuple;
+package org.datagen.db.core;
 
 public interface Relation {
-	public void init ();
-	public void reset ();
+	public void init (Properties map);
+	//public void reset ();
 	public void seek (long offset);
 	public void close ();
 	public Tuple getNext () throws Exception;

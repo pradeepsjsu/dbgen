@@ -1,15 +1,18 @@
 
-package org.datagen.tpch.schema;
-import org.datagen.tpch.util.Tuple;
+package org.datagen.db.tpch.schema;
+import org.datagen.db.core.*;
+import org.datagen.db.tpch.catalog.Dictionary;
 
 public class Lineitem extends Base implements Relation {
 
 	long start = 0;
-	Orders o = null;
+	final Dictionary D = new Dictionary ();
 
-	public void init () {
+	public Lineitem () {
+	}
+
+	public void init (Properties map) {
 		start = 0;
-		o = new Orders ();
 	}
 
 	public void reset () {
@@ -25,7 +28,7 @@ public class Lineitem extends Base implements Relation {
 
 	public Tuple getNext () throws Exception {
 		Long linenumber = id (); 
-		Integer orderkey = o.orderkey (); // XXX: pass linenumber?
+		Integer orderkey = Orders.orderkey (); // XXX: pass linenumber?
 		Integer partkey = Part.partkey ();
 		Integer suppkey = suppkey (partkey);
 		Integer quantity = quantity (partkey);
@@ -53,19 +56,19 @@ public class Lineitem extends Base implements Relation {
 	// -- to ensure data reproducibility, the methods
 	// -- should use 'partkey' as hash or seed value
 
-	private final Integer quantity (final Integer partkey) {
+	private final static Integer quantity (final Integer partkey) {
 		return rnd (50); 
 	}
 
-	public final Integer extendeprice (final Integer partkey) {
+	public final static Integer extendeprice (final Integer partkey) {
 		return quantity (partkey) * Part.retailprice (partkey);
 	}
 
-	public final Double discount (final Integer partkey) {
+	public final static Double discount (final Integer partkey) {
 		return (drnd (0.2) - 1.0);
 	}
 
-	public final Double tax (final Integer partkey) {
+	public final static Double tax (final Integer partkey) {
 		return (drnd (0.08) - 1.0);
 	}
 
@@ -76,7 +79,7 @@ public class Lineitem extends Base implements Relation {
 	private static int suppkey (int partkey) {
 		int S = sf() * 10000;
 		int i = rnd (4) - 1;
-		int suppkey = (partkey + (i * ((S/4) + (int)(partkey-1)/S))) % S + 1;
+		int suppkey = (partkey + (i * ((S/4) + (partkey-1)/S))) % S + 1;
 		return suppkey;
 	}
 

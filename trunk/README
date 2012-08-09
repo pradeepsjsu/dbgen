@@ -6,15 +6,34 @@ Prereq:
 	echo $JAVA_HOME
 	echo $HADOOP_CONF_DIR
 	whereis ant
+	echo $USER;
 	
 Build:
 	ant
 
 Usage:
-	bin/gendata.sh <scale-factor>
+	bin/gendata.sh <scale-factor> <db-name>
 
 Example:
-	bin/gendata.sh 100   # -- produces ~150GB data
+# TPCH:
+  > Generate dataset with scale-factor 100:
+	     bin/gendata.sh 100 tpch  
+
+  > The generated datafiles are stored in HDFS 
+    under the folder '/user/$USER/tpch100'
+
+  > Scale factor 100 produces about 150GB of data
+ 
+# GMM:
+  > Generate dataset with scale-factor 500:
+  		bin/gendata.sh 1000 gmm
+
+  > Generated data will be under '/user/$USER/gmm1000'
+
+  > gmm data-format: 
+  	  <tstamp, x-coord, y-coord, z-coord>
+
+  > For gmm, # of recs produced = $SCALE_FACTOR * 1,000,000
 
 Note:
     scale-factor=1

@@ -1,12 +1,17 @@
 
-package org.datagen.tpch.schema;
-import org.datagen.tpch.util.Tuple;
+package org.datagen.db.tpch.schema;
+import org.datagen.db.core.*;
+import org.datagen.db.tpch.catalog.Dictionary;
 
 public class Partsupp extends Base implements Relation {
 	
 	long start = 0;
+	final Dictionary D = new Dictionary ();
 
-	public void init () {
+	public Partsupp () {
+	}
+
+	public void init (Properties map) {
 		start = 0;
 	}
 

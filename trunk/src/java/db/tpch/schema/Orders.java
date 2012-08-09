@@ -1,19 +1,18 @@
 
-package org.datagen.tpch.schema;
-import org.datagen.tpch.util.Tuple;
+package org.datagen.db.tpch.schema;
+import org.datagen.db.core.*;
+import org.datagen.db.tpch.catalog.Dictionary;
 
 public class Orders extends Base implements Relation {
 
 	long start = 0;
-	Lineitem li = null;
+	final Dictionary D = new Dictionary ();
 
 	public Orders () {
-		init ();
 	}
 
-	public void init () {
+	public void init (Properties map) {
 		start = 0;
-		li = new Lineitem ();
 	}
 
 	public void reset () {
@@ -48,9 +47,9 @@ public class Orders extends Base implements Relation {
 
 	public Double totalprice (Integer orderkey) {
 		Double o_totprc = null;
-		Integer l_extprc = li.extendeprice (orderkey);
-		Double l_tax = li.tax (orderkey);
-		Double l_disc = li.discount (orderkey);
+		Integer l_extprc = Lineitem.extendeprice (orderkey);
+		Double l_tax = Lineitem.tax (orderkey);
+		Double l_disc = Lineitem.discount (orderkey);
 		if (! isnull (l_extprc, l_tax, l_disc)) {
 			o_totprc = (l_extprc * (1 + l_tax) * (1 - l_disc));
 		}

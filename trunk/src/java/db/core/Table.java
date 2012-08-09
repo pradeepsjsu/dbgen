@@ -1,22 +1,28 @@
 
-package org.datagen.tpch.util;
-import org.datagen.tpch.schema.*;
+package org.datagen.db.core;
+import org.datagen.db.tpch.schema.*;
+import org.datagen.db.gmm.schema.*;
 
 import java.util.List;
 import java.util.HashMap;
 import java.util.ArrayList;
 
-/** Enumeration of all TPCH relations */
 public enum Table {
 
-	LINEITEM (Lineitem.class, "lineitem", 6000000, false),
-	ORDERS (Orders.class, "orders", 1500000, false),
-	CUSTOMER (Customer.class, "customer", 150000, false),
-	PART (Part.class, "part", 200000, false),
-	PARTSUPP (Partsupp.class, "partsupp", 800000, false),
-	SUPPLIER (Supplier.class, "supplier", 10000, false),
-	NATION (Nation.class, "nation", 25, true),
-	REGION (Region.class, "region", 5, true);
+	/** Enumeration of all TPCH relations */
+	LINEITEM (Lineitem.class, "tpch", "lineitem", 6000000, false),
+	ORDERS (Orders.class, "orders", "tpch", 1500000, false),
+	CUSTOMER (Customer.class, "customer", "tpch", 150000, false),
+	PART (Part.class, "part", "tpch", 200000, false),
+	PARTSUPP (Partsupp.class, "partsupp", "tpch", 800000, false),
+	SUPPLIER (Supplier.class, "supplier", "tpch", 10000, false),
+	NATION (Nation.class, "nation", "tpch", 25, true),
+	REGION (Region.class, "region", "tpch", 5, true),
+
+	/** Enumeration of all GMM relations */
+	DATA (Data.class, "data", "gmm", 1000000, false),
+	CLUSTER (Cluster.class, "cluster", "gmm", 10, true),
+	META (Meta.class, "meta", "gmm", 3, true);
 
 	private static final HashMap<String, Table>  NAME_TO_TBL = new HashMap<String, Table> ();
 
@@ -28,12 +34,14 @@ public enum Table {
 
 	private final Class<?> clazz;
 	private final String id; // avoiding 'name' .. Enum.name()
+	private final String db;
 	private final int size;
 	private final boolean isConst;
 
-	Table (Class<?> clazz, String id, int size, boolean isConst) {
+	Table (Class<?> clazz, String id, String db, int size, boolean isConst) {
 		this.clazz = clazz;
 		this.id = id;
+		this.db = db;
 		this.size = size;
 		this.isConst = isConst;
 	}
@@ -41,6 +49,10 @@ public enum Table {
 	// -- getters 
 	public String id () {
 		return id;
+	}
+
+	public String db () {
+		return db;
 	}
 
 	public Class<?> getInstance () {

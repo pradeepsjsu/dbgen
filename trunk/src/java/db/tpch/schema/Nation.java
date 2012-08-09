@@ -1,7 +1,7 @@
 
-package org.datagen.tpch.schema;
-import org.datagen.tpch.util.*;
-import org.datagen.tpch.catalog.Dictionary;
+package org.datagen.db.tpch.schema;
+import org.datagen.db.core.*;
+import org.datagen.db.tpch.catalog.Dictionary;
 
 import java.util.List;
 import java.util.ArrayList;
@@ -66,10 +66,9 @@ public class Nation extends Base implements Relation {
 	long start = 0;
 
 	public Nation () {
-		init ();
 	}
 
-	public void init () {
+	public void init (Properties map) {
 		start = 0;
 	}
 

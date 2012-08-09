@@ -1,13 +1,18 @@
 
-package org.datagen.tpch.schema;
-import org.datagen.tpch.util.*;
+package org.datagen.db.tpch.schema;
+import org.datagen.db.core.*;
+import org.datagen.db.tpch.catalog.Dictionary;
 
 public class Customer extends Base implements Relation {
 
 	long start = 0;
 	long limit = 0;
+	final Dictionary D = new Dictionary ();
 
-	public void init () {  
+	public Customer () {
+	}
+
+	public void init (Properties map) {  
 		start = 0;
 		limit = Table.CUSTOMER.size (1.0);
 	}
@@ -39,7 +44,7 @@ public class Customer extends Base implements Relation {
 
 	public Integer custkey (long offset) {
 		// FIXME: use offset and wrap around
-		return (int) rndL (limit); 
+		return rndL (limit); 
 	}
 };
 
